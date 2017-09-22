@@ -1,7 +1,11 @@
-import { NgModule, ErrorHandler } from '@angular/core';
+import { NgModule, ErrorHandler, Injector } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { IonicApp, IonicModule, IonicErrorHandler } from 'ionic-angular';
+import { IonicApp, IonicModule, IonicErrorHandler, Platform } from 'ionic-angular';
 import { MyApp } from './app.component';
+
+import { Network } from '@ionic-native/network';
+import { MyInjector } from './app.injector';
+import { NetworkMock } from '../provider/mock/network-mock';
 
 import { AboutPage } from '../pages/about/about';
 import { ContactPage } from '../pages/contact/contact';
@@ -34,7 +38,20 @@ import { SplashScreen } from '@ionic-native/splash-screen';
   providers: [
     StatusBar,
     SplashScreen,
-    {provide: ErrorHandler, useClass: IonicErrorHandler}
+    {provide: ErrorHandler, useClass: IonicErrorHandler},
+    {
+        provide: Network,
+        useFactory(platform: Platform) {
+            return platform.is('cordova')
+              ? new Network()
+              : new NetworkMock();
+        },
+        deps: [Platform]
+    },
   ]
 })
-export class AppModule {}
+export class AppModule {
+    constructor(private injector: Injector) {
+    	 MyInjector.instance = this.injector;
+    }
+}
